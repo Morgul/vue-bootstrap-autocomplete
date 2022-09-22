@@ -1,7 +1,27 @@
 {
-  "name": "vue3-bootstrap-autocomplete",
-  "version": "0.0.0",
-  "private": true,
+  "name": "@vue-bootstrap-components/vue-bootstrap-autocomplete",
+  "version": "2.13.0",
+  "private": false,
+  "description": "A typeahead/autocomplete component for Vue 2 using Bootstrap 4",
+  "keywords": [
+    "vue",
+    "autocomplete",
+    "bootstrap",
+    "bootstrap 4",
+    "omnisearch",
+    "typeahead"
+  ],
+  "homepage": "https://github.com/drikusroor/vue-bootstrap-autocomplete",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/drikusroor/vue-bootstrap-autocomplete.git"
+  },
+  "bugs": {
+    "url": "https://github.com/drikusroor/vue-bootstrap-autocomplete/issues"
+  },
+  "license": "MIT",
+  "author": "Drikus Roor <drikusroor@gmail.com>",
+  "main": "src/components/VueBootstrapAutocomplete.vue",
   "scripts": {
     "dev": "vite --host",
     "build": "vite build",
