@@ -1,14 +1,17 @@
 <template>
-  <div class="list-group shadow" ref="suggestionList">
+  <div :is="'ul'" class="list-group shadow" ref="suggestionList">
     <vue-bootstrap-autocomplete-list-item
-      v-for="(item, id) in matchedItems" :key="id"
+      v-for="(item, id) in matchedItems"
+      :key="id"
       :active="isListItemActive(id)"
-      :id="(isListItemActive(id)) ? `selected-option-${vbtUniqueId}` : false"
+      :id="isListItemActive(id) ? `selected-option-${vbtUniqueId}` : false"
       :data="item.data"
       :html-text="highlight(item.text)"
       role="option"
-      :aria-selected="(isListItemActive(id)) ? 'true' : 'false'"
-      :screen-reader-text="(item.screenReaderText) ? item.screenReaderText : item.text"
+      :aria-selected="isListItemActive(id) ? 'true' : 'false'"
+      :screen-reader-text="
+        item.screenReaderText ? item.screenReaderText : item.text
+      "
       :disabled="isDisabledItem(item)"
       :background-variant="backgroundVariant"
       :background-variant-resolver="backgroundVariantResolver"
@@ -20,6 +23,21 @@
         <slot name="suggestion" v-bind="{ data, htmlText }" />
       </template>
     </vue-bootstrap-autocomplete-list-item>
+    <li
+      id="noResultsInfo"
+      class="vbst-item list-group-item list-group-item-action disabled"
+      v-if="matchedItems.length == 0 && !!$scopedSlots.noResultsInfo || !!noResultsInfo"
+      tabindex="-1"
+      disabled="disabled"
+      aria-selected="false"
+    >
+      <template v-if="$scopedSlots.noResultsInfo">
+        <slot name="noResultsInfo" v-bind="{ data, htmlText }" />
+      </template>
+      <template v-else>
+        {{ noResultsInfo }}
+      </template>
+    </li>
   </div>
 </template>
 
@@ -51,7 +69,7 @@ export default {
     data: {
       type: Array,
       required: true,
-      validator: d => d instanceof Array
+      validator: (d) => d instanceof Array
     },
     query: {
       type: String,
@@ -67,7 +85,7 @@ export default {
     backgroundVariantResolver: {
       type: Function,
       default: (d) => null,
-      validator: d => d instanceof Function
+      validator: (d) => d instanceof Function
     },
     disableSort: {
       type: Boolean
@@ -86,6 +104,9 @@ export default {
     disabledValues: {
       type: Array,
       default: () => []
+    },
+    noResultsInfo: {
+      type: String
     },
     showOnFocus: {
       type: Boolean,
@@ -112,15 +133,19 @@ export default {
   },
 
   computed: {
+
     highlight() {
-      return text => {
+      return (text) => {
         text = sanitize(text)
         if (this.query.length === 0) {
           return text
         }
 
         const re = new RegExp(this.escapedQuery, 'gi')
-        return text.replace(re, `<span class='${this.highlightClass}'>$&</span>`)
+        return text.replace(
+          re,
+          `<span class='${this.highlightClass}'>$&</span>`
+        )
       }
     },
 
@@ -135,7 +160,10 @@ export default {
     },
 
     matchedItems() {
-      if (!this.showOnFocus && (isEmpty(this.query) || this.query.length < this.minMatchingChars)) {
+      if (
+        !this.showOnFocus &&
+        (isEmpty(this.query) || this.query.length < this.minMatchingChars)
+      ) {
         return []
       }
 
@@ -143,17 +171,22 @@ export default {
 
       // Filter, sort, and concat
       return this.data
-        .filter(i => i.text.match(re) !== null)
+        .filter((i) => i.text.match(re) !== null)
         .sort((a, b) => {
           if (this.disableSort) return 0
 
           const aIndex = a.text.indexOf(a.text.match(re)[0])
           const bIndex = b.text.indexOf(b.text.match(re)[0])
 
-          if (aIndex < bIndex) { return -1 }
-          if (aIndex > bIndex) { return 1 }
+          if (aIndex < bIndex) {
+            return -1
+          }
+          if (aIndex > bIndex) {
+            return 1
+          }
           return 0
-        }).slice(0, this.maxMatches)
+        })
+        .slice(0, this.maxMatches)
     }
   },
 
@@ -207,14 +240,18 @@ export default {
 
       let nextActiveIndex = findIndex(
         itemsToSearch,
-        function(o) { return !this.isDisabledItem(o) }.bind(this),
+        function (o) {
+          return !this.isDisabledItem(o)
+        }.bind(this),
         currentSelectedItem + 1
       )
 
       if (nextActiveIndex === BEFORE_LIST_INDEX) {
         nextActiveIndex = findIndex(
           itemsToSearch,
-          function(o) { return !this.isDisabledItem(o) }.bind(this)
+          function (o) {
+            return !this.isDisabledItem(o)
+          }.bind(this)
         )
       }
 
@@ -239,10 +276,14 @@ export default {
       }
 
       let reversedList = reverse(clone(this.matchedItems))
-      let currerntReversedIndex = ((this.matchedItems.length - 1) - this.activeListItem)
-      let nextReverseIndex = this.findIndexForNextActiveItem(reversedList, currerntReversedIndex)
+      let currerntReversedIndex =
+        this.matchedItems.length - 1 - this.activeListItem
+      let nextReverseIndex = this.findIndexForNextActiveItem(
+        reversedList,
+        currerntReversedIndex
+      )
 
-      this.activeListItem = (this.matchedItems.length - 1) - nextReverseIndex
+      this.activeListItem = this.matchedItems.length - 1 - nextReverseIndex
     }
   },
   watch: {

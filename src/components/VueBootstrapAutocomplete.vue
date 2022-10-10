@@ -4,10 +4,14 @@
     role="combobox"
     aria-haspopup="listbox"
     :aria-owns="`result-list-${id}`"
-    :aria-expanded="(isFocused && data.length > 0) ? 'true' : 'false'"
+    :aria-expanded="isFocused && data.length > 0 ? 'true' : 'false'"
   >
     <div :class="inputGroupClasses">
-      <div ref="prependDiv" v-if="$slots.prepend || prepend" class="input-group-prepend">
+      <div
+        ref="prependDiv"
+        v-if="$slots.prepend || prepend"
+        class="input-group-prepend"
+      >
         <slot name="prepend">
           <span class="input-group-text">{{ prepend }}</span>
         </slot>
@@ -25,7 +29,7 @@
         :aria-activedescendant="`selected-option-${id}`"
         :name="inputName"
         :placeholder="placeholder"
-        :aria-label="(!ariaLabelledBy) ? placeholder : false"
+        :aria-label="!ariaLabelledBy ? placeholder : false"
         :value="inputValue"
         :disabled="disabled"
         @focus="isFocused = true"
@@ -53,12 +57,13 @@
       :text-variant="textVariant"
       :maxMatches="maxMatches"
       :minMatchingChars="minMatchingChars"
+      :noResultsInfo="noResultsInfo"
       :disableSort="disableSort"
       :showOnFocus="showOnFocus"
       :showAllResults="showAllResults"
       @hit="handleHit"
       @listItemBlur="handleChildBlur"
-      :highlightClass='highlightClass'
+      :highlightClass="highlightClass"
       :disabledValues="disabledValues"
       :vbtUniqueId="id"
       role="listbox"
@@ -94,7 +99,7 @@ export default {
     size: {
       type: String,
       default: null,
-      validator: size => ['lg', 'md', 'sm'].indexOf(size) > -1
+      validator: (size) => ['lg', 'md', 'sm'].indexOf(size) > -1
     },
     modelValue: String,
     disabled: {
@@ -104,24 +109,24 @@ export default {
     data: {
       type: Array,
       required: true,
-      validator: d => d instanceof Array
+      validator: (d) => d instanceof Array
     },
     serializer: {
       type: Function,
       default: (d) => d,
-      validator: d => d instanceof Function
+      validator: (d) => d instanceof Function
     },
     // Don't call this method, use _screenReaderTextSerializer()
     // Using _screenReaderTextSerializer allows for defaulting based on .serializer
     screenReaderTextSerializer: {
       type: Function,
-      validator: d => d instanceof Function
+      validator: (d) => d instanceof Function
     },
     backgroundVariant: String,
     backgroundVariantResolver: {
       type: Function,
       default: (d) => d,
-      validator: d => d instanceof Function
+      validator: (d) => d instanceof Function
     },
     disabledValues: {
       type: Array,
@@ -147,6 +152,9 @@ export default {
     disableSort: {
       type: Boolean,
       default: false
+    },
+    noResultsInfo: {
+      type: String
     },
     showOnFocus: {
       type: Boolean,
@@ -293,7 +301,7 @@ export default {
   },
 
   mounted() {
-    this.$_ro = new ResizeObserver(e => {
+    this.$_ro = new ResizeObserver((e) => {
       this.resizeList(this.$refs.input)
     })
     this.$_ro.observe(this.$refs.input)
@@ -305,7 +313,7 @@ export default {
   },
 
   watch: {
-    value: function(val) {
+    value: function (val) {
       this.inputValue = val
     }
   }
@@ -313,15 +321,15 @@ export default {
 </script>
 
 <style scoped>
-  .vbt-autcomplete-list {
-    padding-top: 5px;
-    position: absolute;
-    max-height: 350px;
-    -ms-overflow-style: -ms-autohiding-scrollbar;
-    overflow-y: auto;
-    z-index: 999;
-  }
-  .vbt-autcomplete-list >>> .vbt-matched-text{
-    font-weight: bold;
-  }
+.vbt-autocomplete-list {
+  padding-top: 5px;
+  position: absolute;
+  max-height: 350px;
+  -ms-overflow-style: -ms-autohiding-scrollbar;
+  overflow-y: auto;
+  z-index: 999;
+}
+.vbt-autocomplete-list >>> .vbt-matched-text {
+  font-weight: bold;
+}
 </style>
