@@ -14,9 +14,9 @@
       :background-variant-resolver="backgroundVariantResolver"
       :text-variant="textVariant"
       @click.native="handleHit(item, $event)"
-      v-on="$listeners"
+      v-bind="$attrs"
     >
-      <template v-if="$scopedSlots.suggestion" slot="suggestion" slot-scope="{ data, htmlText }">
+      <template v-if="$slots.suggestion" v-slot:suggestion="{ data, htmlText }">
         <slot name="suggestion" v-bind="{ data, htmlText }" />
       </template>
     </vue-typeahead-bootstrap-list-item>
@@ -25,12 +25,8 @@
 
 <script>
 import VueTypeaheadBootstrapListItem from './VueTypeaheadBootstrapListItem.vue'
-import clone from 'lodash/clone'
-import includes from 'lodash/includes'
-import isEmpty from 'lodash/isEmpty'
-import reject from 'lodash/reject'
-import reverse from 'lodash/reverse'
-import findIndex from 'lodash/findIndex'
+
+import {clone, includes, isEmpty, reject, reverse, findIndex} from 'lodash-es'
 
 const BEFORE_LIST_INDEX = -1
 
@@ -104,8 +100,8 @@ export default {
   },
 
   created() {
-    this.$parent.$on('input', this.resetActiveListItem)
-    this.$parent.$on('keyup', this.handleParentInputKeyup)
+   // this.$parent.$on('input', this.resetActiveListItem)
+  // this.$parent.$on('keyup', this.handleParentInputKeyup)
   },
   data() {
     return {
@@ -161,14 +157,15 @@ export default {
 
   methods: {
     handleParentInputKeyup(e) {
-      switch (e.keyCode) {
-        case 40: // down arrow
+
+      switch (e.key) {
+        case 'ArrowDown': // down arrow
           this.selectNextListItem()
           break
-        case 38: // up arrow
+        case 'ArrowUp': // up arrow
           this.selectPreviousListItem()
           break
-        case 13: // enter
+        case 'Enter': // enter
           this.hitActiveListItem()
           break
       }
@@ -180,7 +177,7 @@ export default {
     },
     hitActiveListItem() {
       if (this.activeListItem < 0) {
-        this.selectNextListItem()
+        this.selectNextListItem();
       }
       if (this.activeListItem >= 0) {
         this.$emit('hit', this.matchedItems[this.activeListItem])
@@ -194,6 +191,7 @@ export default {
       return this.activeListItem === id
     },
     resetActiveListItem() {
+
       this.activeListItem = -1
     },
 

@@ -28,11 +28,11 @@
         :aria-label="(!ariaLabelledBy) ? placeholder : false"
         :value="inputValue"
         :disabled="disabled"
-        @focus="handleFocus"
+        @focus="isFocused = true"
         @blur="handleFocusOut"
         @input="handleInput($event.target.value)"
         @keydown.esc="handleEsc($event.target.value)"
-        @keyup="$emit('keyup', $event)"
+        @keyup="handleKeyUp($event)"
       />
       <div v-if="$slots.append || append" class="input-group-append">
         <slot name="append">
@@ -42,7 +42,7 @@
     </div>
     <vue-typeahead-bootstrap-list
       :id="`result-list-${id}`"
-      class="vbt-autocomplete-list"
+      class="vbt-autcomplete-list"
       ref="list"
       v-show="isFocused && data.length > 0"
       :query="inputValue"
@@ -63,7 +63,7 @@
       role="listbox"
     >
       <!-- pass down all scoped slots -->
-      <template v-for="(slot, slotName) in $scopedSlots" :slot="slotName" slot-scope="{ data, htmlText }">
+      <template v-for="(slot, slotName) in $slots" v-slot:[slotName]="{ data, htmlText }">
         <slot :name="slotName" v-bind="{ data, htmlText }"></slot>
       </template>
       <!-- below is the right solution, however if the user does not provide a scoped slot, vue will still set $scopedSlots.suggestion to a blank scope
@@ -95,9 +95,7 @@ export default {
       default: null,
       validator: size => ['lg', 'md', 'sm'].indexOf(size) > -1
     },
-    value: {
-      type: String
-    },
+    modelValue: String,
     disabled: {
       type: Boolean,
       default: false
@@ -170,8 +168,7 @@ export default {
     append: String,
     highlightClass: String
   },
-
-  emits: ['hit', 'input', 'keyup', 'focus', 'blur'],
+  emits: ['hit', 'input', 'keyup', 'focus', 'blur', 'paste', 'update:model-value'],
 
   computed: {
     id() {
@@ -197,9 +194,9 @@ export default {
   },
 
   methods: {
-    _screenReaderTextSerializer(d) {
-      if (typeof d === 'object' && !Array.isArray(d) && d !== null) {
-        if (this.screenReaderTextSerializer) {
+    _screenReaderTextSerializer(d){
+      if ( typeof d === "object" && !Array.isArray(d) && d !== null){
+       if (this.screenReaderTextSerializer){
           return this.screenReaderTextSerializer(d)
         } else {
           return this.serializer(d)
@@ -223,9 +220,16 @@ export default {
       }
     },
 
+    handleKeyUp(evt) {
+
+      this.$refs.list.handleParentInputKeyup(evt)
+      this.$emit('keyup', evt)
+
+    },
+
     handleHit(evt) {
-      if (typeof this.value !== 'undefined') {
-        this.$emit('input', evt.text)
+      if (typeof this.modelValue !== 'undefined') {
+        this.$emit('update:model-value', evt.text)
       }
 
       this.inputValue = evt.text
@@ -242,35 +246,31 @@ export default {
       this.isFocused = false
     },
 
-    runFocusOut(evt) {
-      const tgt = evt.relatedTarget
+    runFocusOut(tgt) {
       if (tgt && tgt.classList.contains('vbst-item')) {
         return
       }
-      this.$emit('blur', evt)
       this.isFocused = false
     },
 
     handleFocusOut(evt) {
+      const tgt = evt.relatedTarget
       if (!!navigator.userAgent.match(/Trident.*rv:11\./) && this.ieCloseFix) {
-        setTimeout(() => { this.runFocusOut(evt) }, 300)
+        setTimeout(() => { this.runFocusOut(tgt) }, 300)
       } else {
-        this.runFocusOut(evt)
+        this.runFocusOut(tgt)
       }
-    },
-
-    handleFocus() {
-      this.$emit('focus')
-      this.isFocused = true
     },
 
     handleInput(newValue) {
       this.isFocused = true
       this.inputValue = newValue
 
+      this.$refs.list.resetActiveListItem()
+
       // If v-model is being used, emit an input event
-      if (typeof this.value !== 'undefined') {
-        this.$emit('input', newValue)
+      if (typeof this.modelValue !== 'undefined') {
+        this.$emit('update:model-value', newValue)
       }
     },
 
@@ -287,7 +287,7 @@ export default {
   data() {
     return {
       isFocused: false,
-      inputValue: this.value || ''
+      inputValue: this.modelValue || ''
     }
   },
 
@@ -299,7 +299,7 @@ export default {
     this.$_ro.observe(this.$refs.list.$el)
   },
 
-  beforeDestroy() {
+  beforeUnmount() {
     this.$_ro.disconnect()
   },
 
@@ -312,7 +312,7 @@ export default {
 </script>
 
 <style scoped>
-  .vbt-autocomplete-list {
+  .vbt-autcomplete-list {
     padding-top: 5px;
     position: absolute;
     max-height: 350px;
@@ -320,7 +320,7 @@ export default {
     overflow-y: auto;
     z-index: 999;
   }
-  .vbt-autocomplete-list >>> .vbt-matched-text{
+  .vbt-autcomplete-list >>> .vbt-matched-text{
     font-weight: bold;
   }
 </style>
