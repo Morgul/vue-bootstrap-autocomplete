@@ -1,4 +1,6 @@
 import { mount } from '@vue/test-utils'
+import { it, describe, expect } from 'vitest'
+
 import VueTypeaheadBootstrapList from '@/components/VueTypeaheadBootstrapList.vue'
 import VueTypeaheadBootstrapListItem from '@/components/VueTypeaheadBootstrapListItem.vue'
 
@@ -63,23 +65,26 @@ describe('VueBootstrapTypeaheadList', () => {
     expect(wrapper.findAllComponents(VueTypeaheadBootstrapListItem).length).toBe(2)
   })
 
-  it('Matches no items when there is no query', () => {
+  it('Matches no items when there is no query', async () => {
     expect(wrapper.vm.matchedItems.length).toBe(0)
     wrapper.setProps({
       query: ''
     })
+    await wrapper.vm.$nextTick()
     expect(wrapper.vm.matchedItems.length).toBe(0)
     expect(wrapper.findAllComponents(VueTypeaheadBootstrapListItem).length).toBe(0)
   })
 
-  it('Limits the number of matches with maxMatches', () => {
+  it('Limits the number of matches with maxMatches', async () => {
     wrapper.setProps({
       query: 'can'
     })
+    await wrapper.vm.$nextTick()
     expect(wrapper.vm.matchedItems.length).toBe(3)
     wrapper.setProps({
       maxMatches: 1
     })
+    await wrapper.vm.$nextTick()
     expect(wrapper.vm.matchedItems.length).toBe(1)
   })
 
@@ -178,18 +183,21 @@ describe('VueBootstrapTypeaheadList', () => {
         wrapper.vm.selectNextListItem()
         expect(wrapper.vm.activeListItem).toBe(0)
       })
-      it('returns the second item when the first is disabled', () => {
+      it('returns the second item when the first is disabled', async () => {
         wrapper.setProps({ disabledValues: ['Canada'] })
+        await wrapper.vm.$nextTick()
         wrapper.vm.selectNextListItem()
         expect(wrapper.vm.activeListItem).toBe(1)
       })
-      it('returns the third item when the first and second are disabled', () => {
+      it('returns the third item when the first and second are disabled', async () => {
         wrapper.setProps({ disabledValues: ['Canada', 'Canada1'] })
+        await wrapper.vm.$nextTick()
         wrapper.vm.selectNextListItem()
         expect(wrapper.vm.activeListItem).toBe(2)
       })
-      it('returns -1 when everything is disabled', () => {
+      it('returns -1 when everything is disabled', async () => {
         wrapper.setProps({ disabledValues: ['Canada', 'Canada1', 'Canada2'] })
+        await wrapper.vm.$nextTick()
         wrapper.vm.selectNextListItem()
         expect(wrapper.vm.activeListItem).toBe(-1)
         wrapper.vm.selectNextListItem()
@@ -202,8 +210,9 @@ describe('VueBootstrapTypeaheadList', () => {
         wrapper.vm.selectNextListItem()
         expect(wrapper.vm.activeListItem).toBe(0)
       })
-      it('wrapping accounts for disabled items', () => {
+      it('wrapping accounts for disabled items', async () => {
         wrapper.setProps({ disabledValues: ['Canada'] })
+        await wrapper.vm.$nextTick()
         wrapper.vm.activeListItem = 2
         wrapper.vm.selectNextListItem()
         expect(wrapper.vm.activeListItem).toBe(1)
@@ -215,18 +224,21 @@ describe('VueBootstrapTypeaheadList', () => {
         wrapper.vm.selectPreviousListItem()
         expect(wrapper.vm.activeListItem).toBe(2)
       })
-      it('returns the second item when the last is disabled', () => {
+      it('returns the second item when the last is disabled', async () => {
         wrapper.setProps({ disabledValues: ['Canada2'] })
+        await wrapper.vm.$nextTick()
         wrapper.vm.selectPreviousListItem()
         expect(wrapper.vm.activeListItem).toBe(1)
       })
-      it('returns the second item when the third and fourth are disabled', () => {
+      it('returns the second item when the third and fourth are disabled', async () => {
         wrapper.setProps({ disabledValues: ['Canada3', 'Canada2'] })
+        await wrapper.vm.$nextTick()
         wrapper.vm.selectPreviousListItem()
         expect(wrapper.vm.activeListItem).toBe(1)
       })
-      it('returns -1 when everything is disabled', () => {
+      it('returns -1 when everything is disabled', async () => {
         wrapper.setProps({ disabledValues: ['Canada', 'Canada1', 'Canada2', 'Canada3'] })
+        await wrapper.vm.$nextTick()
         wrapper.vm.selectPreviousListItem()
         expect(wrapper.vm.activeListItem).toBe(-1)
         wrapper.vm.selectPreviousListItem()
@@ -247,8 +259,9 @@ describe('VueBootstrapTypeaheadList', () => {
         wrapper.vm.selectPreviousListItem()
         expect(wrapper.vm.activeListItem).toBe(2)
       })
-      it('wrapping accounts for disabled items', () => {
+      it('wrapping accounts for disabled items', async () => {
         wrapper.setProps({ disabledValues: ['Canada2'] })
+        await wrapper.vm.$nextTick()
         wrapper.vm.activeListItem = 0
         wrapper.vm.selectPreviousListItem()
         expect(wrapper.vm.activeListItem).toBe(1)
@@ -299,7 +312,7 @@ describe('VueBootstrapTypeaheadList', () => {
         wrapper.vm.selectNextListItem()
         wrapper.vm.selectNextListItem()
         await wrapper.vm.$nextTick()
-        wrapper.vm.handleParentInputKeyup({ keyCode: 13 }) // simulate enter key
+        wrapper.vm.handleParentInputKeyup({ key: 'Enter' }) // simulate enter key
         await wrapper.vm.$nextTick()
         expect(wrapper.emitted().hit).toBeTruthy()
         expect(wrapper.emitted().hit[0][0].data).toBe('Canada1')
@@ -307,7 +320,7 @@ describe('VueBootstrapTypeaheadList', () => {
 
       it('returns the first item when no item is selected', async () => {
         await wrapper.vm.$nextTick()
-        wrapper.vm.handleParentInputKeyup({ keyCode: 13 }) // simulate enter key
+        wrapper.vm.handleParentInputKeyup({ key: 'Enter' }) // simulate enter key
         await wrapper.vm.$nextTick()
         expect(wrapper.emitted().hit).toBeTruthy()
         expect(wrapper.emitted().hit[0][0].data).toBe('Canada')
@@ -317,7 +330,8 @@ describe('VueBootstrapTypeaheadList', () => {
         wrapper.setProps({
           disabledValues: ['Canada']
         })
-        wrapper.vm.handleParentInputKeyup({ keyCode: 13 }) // simulate enter key
+        await wrapper.vm.$nextTick()
+        wrapper.vm.handleParentInputKeyup({ key: 'Enter' }) // simulate enter key
         await wrapper.vm.$nextTick()
         expect(wrapper.emitted().hit).toBeTruthy()
         expect(wrapper.emitted().hit[0][0].data).toBe('Canada1')
@@ -330,7 +344,7 @@ describe('VueBootstrapTypeaheadList', () => {
         query: 'Cana'
       })
       await wrapper.vm.$nextTick()
-      wrapper.vm.handleParentInputKeyup({ keyCode: 13 }) // simulate enter key
+      wrapper.vm.handleParentInputKeyup({ key: 'Enter' }) // simulate enter key
       await wrapper.vm.$nextTick()
       expect(wrapper.emitted().hit).toBeTruthy()
       expect(wrapper.emitted().hit[0][0].data).toBe('Canada1')
@@ -342,7 +356,7 @@ describe('VueBootstrapTypeaheadList', () => {
         query: 'Cana'
       })
       await wrapper.vm.$nextTick()
-      wrapper.vm.handleParentInputKeyup({ keyCode: 13 }) // simulate enter key
+      wrapper.vm.handleParentInputKeyup({ key: 'Enter' }) // simulate enter key
       await wrapper.vm.$nextTick()
       expect(wrapper.emitted('hit')).toBeFalsy()
     })
