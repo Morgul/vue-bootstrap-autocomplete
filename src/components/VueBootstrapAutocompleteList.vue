@@ -119,6 +119,10 @@ export default {
     highlightClass: {
       type: String,
       default: 'vbt-matched-text'
+    },
+    htmlText: {
+      type: String,
+      default: ''
     }
   },
 
