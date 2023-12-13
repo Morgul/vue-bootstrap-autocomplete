@@ -9,9 +9,9 @@ describe("VueBootstrapAutocompleteListItem.vue", () => {
     // Mock parent methods
     mockParent = {
       methods: {
-        hitActiveListItem: jest.fn(),
-        selectNextListItem: jest.fn(),
-        selectPreviousListItem: jest.fn(),
+        hitActiveListItem: vi.fn(),
+        selectNextListItem: vi.fn(),
+        selectPreviousListItem: vi.fn(),
       },
     };
 
