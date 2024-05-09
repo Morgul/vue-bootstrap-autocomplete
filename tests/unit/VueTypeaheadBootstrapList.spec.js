@@ -1,8 +1,8 @@
 import { mount } from '@vue/test-utils'
 import { it, describe, expect } from 'vitest'
 
-import VueBootstrapAutocompleteList from '@/components/VueBootstrapAutocompleteList.vue'
-import VueBootstrapAutocompleteListItem from '@/components/VueBootstrapAutocompleteListItem.vue'
+import VueBootstrapAutocompleteList from '@/library/components/VueBootstrapAutocompleteList.vue'
+import VueBootstrapAutocompleteListItem from '@/library/components/VueBootstrapAutocompleteListItem.vue'
 
 describe('VueBootstrapTypeaheadList', () => {
   let wrapper

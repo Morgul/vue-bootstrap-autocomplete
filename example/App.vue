@@ -12,7 +12,7 @@
 </template>
 
 <script>
-import VueBootstrapAutocomplete from '../src/components/VueBootstrapAutocomplete.vue'
+import VueBootstrapAutocomplete from '../src/library/components/VueBootstrapAutocomplete.vue'
 
 export default {
   components: { VueBootstrapAutocomplete },

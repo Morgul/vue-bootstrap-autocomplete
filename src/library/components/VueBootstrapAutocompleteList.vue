@@ -41,7 +41,7 @@
   </ul>
 </template>
 
-<script>
+<script lang="ts">
 import VueBootstrapAutocompleteListItem from './VueBootstrapAutocompleteListItem.vue'
 import { clone, includes, isEmpty, reject, reverse, findIndex } from 'lodash'
 

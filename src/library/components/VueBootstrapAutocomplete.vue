@@ -80,7 +80,7 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
 import VueBootstrapAutocompleteList from './VueBootstrapAutocompleteList.vue'
 import ResizeObserver from 'resize-observer-polyfill'
 

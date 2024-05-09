@@ -1,5 +1,5 @@
 import { shallowMount } from "@vue/test-utils";
-import VueBootstrapAutocompleteListItem from "@/components/VueBootstrapAutocompleteListItem.vue";
+import VueBootstrapAutocompleteListItem from "@/library/components/VueBootstrapAutocompleteListItem.vue";
 
 describe("VueBootstrapAutocompleteListItem.vue", () => {
   let wrapper;

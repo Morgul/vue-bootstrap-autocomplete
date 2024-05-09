@@ -1,11 +1,10 @@
-<script setup>
-import '~bootstrap/scss/bootstrap.scss'
+<script lang="ts" setup>
+    import '~bootstrap/scss/bootstrap.scss'
 
-import { reactive } from 'vue'
-import VueBootstrapAutocomplete from '@/components/VueBootstrapAutocomplete.vue';
+    import { reactive } from 'vue'
+    import VueBootstrapAutocomplete from '@/library/components/VueBootstrapAutocomplete.vue';
 
-const state = reactive({query : ''})
-
+    const state = reactive({query : ''})
 </script>
 
 <template>

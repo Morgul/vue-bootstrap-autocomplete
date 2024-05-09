@@ -1,7 +1,7 @@
 import { mount } from '@vue/test-utils'
 import { it, describe, expect, vi } from 'vitest';
-import VueBootstrapAutocomplete from '@/components/VueBootstrapAutocomplete.vue'
-import VueBootstrapAutocompleteList from '@/components/VueBootstrapAutocompleteList.vue'
+import VueBootstrapAutocomplete from '@/library/components/VueBootstrapAutocomplete.vue'
+import VueBootstrapAutocompleteList from '@/library/components/VueBootstrapAutocompleteList.vue'
 
 describe('VueBootstrapAutocomplete', () => {
   let wrapper

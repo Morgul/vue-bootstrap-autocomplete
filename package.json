@@ -21,7 +21,7 @@
   },
   "license": "MIT",
   "author": "Drikus Roor <drikusroor@gmail.com>",
-  "main": "src/components/VueBootstrapAutocomplete.vue",
+  "main": "src/library/components/VueBootstrapAutocomplete.vue",
   "scripts": {
     "dev": "vite --host",
     "build": "vite build",
@@ -45,6 +45,7 @@
     "eslint-plugin-vue": "^9.3.0",
     "jsdom": "^24.0.0",
     "sass": "^1.58.0",
+    "typescript": "^5.4.5",
     "vite": "^5.2.11",
     "vitest": "^1.6.0"
   }
