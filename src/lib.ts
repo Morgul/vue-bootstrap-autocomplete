@@ -1,3 +1,5 @@
+//----------------------------------------------------------------------------------------------------------------------
+
 import { App } from 'vue';
 
 import VueBootstrapAutocomplete from './components/VueBootstrapAutocomplete.vue';
@@ -23,6 +25,6 @@ function install(app : App) : void
 //----------------------------------------------------------------------------------------------------------------------
 
 export default { install };
-export { VueBootstrapAutocomplete, VueBootstrapAutocompleteList, VueBootstrapAutocompleteListItem };
+export { install, VueBootstrapAutocomplete, VueBootstrapAutocompleteList, VueBootstrapAutocompleteListItem };
 
 //----------------------------------------------------------------------------------------------------------------------

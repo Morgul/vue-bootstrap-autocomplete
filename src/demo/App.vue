@@ -2,7 +2,7 @@
     import '~bootstrap/scss/bootstrap.scss'
 
     import { reactive } from 'vue'
-    import VueBootstrapAutocomplete from '@/library/components/VueBootstrapAutocomplete.vue';
+    import VueBootstrapAutocomplete from '../components/VueBootstrapAutocomplete.vue';
 
     const state = reactive({query : ''})
 </script>

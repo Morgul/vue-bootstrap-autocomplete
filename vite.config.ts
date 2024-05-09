@@ -1,20 +1,21 @@
 //----------------------------------------------------------------------------------------------------------------------
 
 import path from 'node:path';
-import { fileURLToPath, URL } from 'node:url';
 
 import { defineConfig } from 'vite';
 import vue from '@vitejs/plugin-vue';
+import dts from 'vite-plugin-dts'
 
 //----------------------------------------------------------------------------------------------------------------------
 
 export default defineConfig({
 
-    root: path.resolve(__dirname, 'src', 'demo'),
-    plugins: [vue()],
+    plugins: [
+        vue(),
+        dts({ rollupTypes: true })
+    ],
     resolve: {
         alias: {
-            '@': fileURLToPath(new URL('./src/', import.meta.url)),
             '~bootstrap': path.resolve(__dirname, 'node_modules/bootstrap')
         }
     },
@@ -25,27 +26,18 @@ export default defineConfig({
             protocol: 'ws'
         }
     },
-    // test: {
-    //     globals: true,
-    //     environment: 'jsdom'
-    // },
 
     build: {
-        outDir: path.resolve(__dirname, 'dist'),
         lib: {
-            entry: path.resolve(__dirname, 'src/library/lib.ts'),
+            entry: path.resolve(__dirname, 'src/lib.ts'),
             name: 'vue-bootstrap-autocomplete',
-            formats: ['es'], // adding 'umd' requires globals set to every external module
+            formats: ['es', 'umd'],
             fileName: (format) => `vue-bootstrap-autocomplete.${format}.js`,
         },
         rollupOptions: {
-            // external modules won't be bundled into your library
-            external: ['vue', /bootstrap\/.+/], // not every external has a global
+            external: ['vue', /bootstrap\/.+/],
             output: {
-                // disable warning on src/index.ts using both default and named export
                 exports: 'named',
-                // Provide global variables to use in the UMD build
-                // for externalized deps (not useful if 'umd' is not in lib.formats)
                 globals: {
                     vue: 'Vue',
                 },

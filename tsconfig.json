@@ -27,6 +27,6 @@
     ],
     "references": [
         { "path": "./src/demo/tsconfig.json" },
-        { "path": "./src/library/tsconfig.json" },
+        { "path": "./src/tsconfig.json" },
     ]
 }
