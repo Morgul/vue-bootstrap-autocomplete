@@ -47,9 +47,9 @@
     </div>
     <vue-bootstrap-autocomplete-list
       :id="`result-list-${id}`"
-      class="vbt-autcomplete-list"
+      class="vbt-autocomplete-list"
       ref="list"
-      v-show="isFocused && (data.length > 0 || !!$scopedSlots.noResultsInfo || !!noResultsInfo)"
+      v-show="isFocused && (data.length > 0 || !!$slots.noResultsInfo || !!noResultsInfo)"
       :query="inputValue"
       :data="formattedData"
       :background-variant="backgroundVariant"
@@ -72,8 +72,8 @@
       <template v-for="(slot, slotName) in $slots" v-slot:[slotName]="{ data, htmlText }">
         <slot :name="slotName" v-bind="{ data, htmlText }"></slot>
       </template>
-      <!-- below is the right solution, however if the user does not provide a scoped slot, vue will still set $scopedSlots.suggestion to a blank scope
-      <template v-if="$scopedSlots.suggestion" slot="suggestion" slot-scope="{ data, htmlText }">
+      <!-- below is the right solution, however if the user does not provide a scoped slot, vue will still set $slots.suggestion to a blank scope
+      <template v-if="$slots.suggestion" slot="suggestion" slot-scope="{ data, htmlText }">
         <slot name="suggestion" v-bind="{ data, htmlText }" />
       </template>-->
     </vue-bootstrap-autocomplete-list>
@@ -207,9 +207,9 @@ export default {
   },
 
   methods: {
-    _screenReaderTextSerializer(d){
-      if ( typeof d === "object" && !Array.isArray(d) && d !== null){
-       if (this.screenReaderTextSerializer){
+    _screenReaderTextSerializer(d) {
+      if (typeof d === 'object' && !Array.isArray(d) && d !== null) {
+        if (this.screenReaderTextSerializer) {
           return this.screenReaderTextSerializer(d)
         } else {
           return this.serializer(d)

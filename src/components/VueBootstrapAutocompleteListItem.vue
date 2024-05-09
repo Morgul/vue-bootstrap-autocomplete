@@ -12,7 +12,7 @@
     href="#"
     :class="textClasses"
   >
-    <div class="sr-only">{{screenReaderText}}</div>
+    <div class="visually-hidden">{{screenReaderText}}</div>
     <div aria-hidden="true">
       <slot name="suggestion" v-bind="{ data: data, htmlText: htmlText }">
         <span v-html="htmlText"></span>
