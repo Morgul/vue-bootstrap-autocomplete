@@ -1,5 +1,4 @@
 <script setup>
-import VueTypeaheadBootstrap from './components/VueBootstrapAutocomplete.vue'
 import '~bootstrap/scss/bootstrap.scss'
 
 import { reactive } from 'vue'
