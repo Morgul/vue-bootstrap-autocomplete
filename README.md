@@ -48,7 +48,7 @@ More info here if you're interested:
 * [vue-typeahead-bootstrap](https://github.com/mattzollinhofer/vue-typeahead-bootstrap)
 
 ## Local Examples/Demo
-Clone this repository and run `vuepress dev docs`. Then, navigate to http://localhost:8080/vue-bootstrap-autocomplete-docs/ to launch the documentation and examples. The source is in `docs/README.md` and `docs/.vuepress`
+Clone this repository and run `vuepress dev docs`. Then, navigate to http://localhost:8080/vue-bootstrap-autocomplete/ to launch the documentation and examples. The source is in `docs/README.md` and `docs/.vuepress`
 
 ## Lineage
 * I want to acknowledge the original repository by Alex Urquhart for this work: https://github.com/alexurquhart/vue-bootstrap-typeahead.
