@@ -1,6 +1,6 @@
 <template>
     <ul ref="suggestionList" class="list-group shadow">
-        <vue-bootstrap-autocomplete-list-item
+        <VueBootstrapAutocompleteListItem
             v-for="(item, id) in matchedItems"
             :id="isListItemActive(id) ? `selected-option-${vbtUniqueId}` : false"
             :key="id"
@@ -9,9 +9,7 @@
             :html-text="highlight(item.text)"
             role="option"
             :aria-selected="isListItemActive(id) ? 'true' : 'false'"
-            :screen-reader-text="
-                item.screenReaderText ? item.screenReaderText : item.text
-            "
+            :screen-reader-text="item.screenReaderText ? item.screenReaderText : item.text"
             :disabled="isDisabledItem(item)"
             :background-variant="backgroundVariant"
             :background-variant-resolver="backgroundVariantResolver"
@@ -22,7 +20,7 @@
             <template v-if="$slots.suggestion" #suggestion="{ data, htmlText }">
                 <slot name="suggestion" v-bind="{ data, htmlText }"></slot>
             </template>
-        </vue-bootstrap-autocomplete-list-item>
+        </VueBootstrapAutocompleteListItem>
         <li
             v-if="matchedItems.length === 0 && (!!$slots.noResultsInfo || !!noResultsInfo)"
             id="noResultsInfo"
@@ -41,311 +39,297 @@
     </ul>
 </template>
 
-<script lang="ts">
+<script setup lang="ts">
+    import { ref, computed, defineProps, defineEmits, defineExpose, getCurrentInstance, watch } from 'vue';
     import VueBootstrapAutocompleteListItem from './VueBootstrapAutocompleteListItem.vue';
-    import { clone, includes, isEmpty, reject, reverse, findIndex } from 'lodash';
 
-    const BEFORE_LIST_INDEX = -1;
+    //------------------------------------------------------------------------------------------------------------------
+    // Component Definition
+    //------------------------------------------------------------------------------------------------------------------
 
-    function sanitize(text) 
+    interface Props {
+        data : any[];
+        query ?: string;
+        vbtUniqueId : number;
+        backgroundVariant ?: string;
+        backgroundVariantResolver ?: (d : any) => string;
+        disableSort ?: boolean;
+        textVariant ?: string;
+        maxMatches ?: number;
+        minMatchingChars ?: number;
+        disabledValues ?: any[];
+        noResultsInfo ?: string;
+        showOnFocus ?: boolean;
+        showAllResults ?: boolean;
+        highlightClass ?: string;
+        htmlText ?: string;
+    }
+
+    const props = withDefaults(defineProps<Props>(), {
+        query: '',
+        backgroundVariant: '',
+        backgroundVariantResolver: () => null,
+        disableSort: false,
+        textVariant: '',
+        maxMatches: 10,
+        minMatchingChars: 1,
+        noResultsInfo: 'No results found',
+        showOnFocus: false,
+        showAllResults: false,
+        highlightClass: 'vbt-matched-text',
+        htmlText: '',
+
+        // @ts-expect-error - TS doesn't like this, but it's correct
+        disabledValues: []
+    });
+
+    const emit = defineEmits([ 'hit' ]);
+
+    //------------------------------------------------------------------------------------------------------------------
+    // Data
+    //------------------------------------------------------------------------------------------------------------------
+
+    const activeListItem = ref(-1);
+    const vm = getCurrentInstance();
+
+    const highlight = computed(() =>
+    {
+        return (text : string) =>
+        {
+            text = sanitize(text);
+            if(props.query.length === 0)
+            {
+                return text;
+            }
+
+            const re = new RegExp(props.showAllResults ? '' : escapedQuery.value, 'gi');
+            return text.replace(
+                re,
+                `<span class='${ props.highlightClass }'>$&</span>`
+            );
+        };
+    });
+
+    const escapedQuery = computed(() =>
+    {
+        return escapeRegExp(sanitize(props.query));
+    });
+
+    const actionableItems = computed(() =>
+    {
+        return matchedItems.value.filter((matchedItem) =>
+        {
+            return !isDisabledItem(matchedItem);
+        });
+    });
+
+    const matchedItems = computed(() =>
+    {
+        if(!props.showOnFocus && (props.query.trim() === '' || props.query.length < props.minMatchingChars))
+        {
+            return [];
+        }
+
+        const re = new RegExp(props.showAllResults ? '' : escapedQuery.value, 'gi');
+
+        return props.data
+            .filter((i) => i.text.match(re) !== null)
+            .sort((a, b) =>
+            {
+                if(props.disableSort) { return 0; }
+
+                const aIndex = a.text.indexOf(a.text.match(re)[0]);
+                const bIndex = b.text.indexOf(b.text.match(re)[0]);
+
+                if(aIndex < bIndex)
+                {
+                    return -1;
+                }
+                if(aIndex > bIndex)
+                {
+                    return 1;
+                }
+                return 0;
+            })
+            .slice(0, props.maxMatches);
+    });
+
+    const suggestionList = ref<HTMLElement | null>(null);
+
+    //------------------------------------------------------------------------------------------------------------------
+    // Methods
+    //------------------------------------------------------------------------------------------------------------------
+
+    function sanitize(text : string) : string
     {
         return text.replace(/</g, '&lt;').replace(/>/g, '&gt;');
     }
 
-    function escapeRegExp(str) 
+    function escapeRegExp(str : string) : string
     {
         return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     }
 
-    export default {
-        name: 'VueBootstrapAutocompleteList',
-
-        components: {
-            VueBootstrapAutocompleteListItem
-        },
-
-        props: {
-            data: {
-                type: Array,
-                required: true,
-                validator: (d) => d instanceof Array
-            },
-            query: {
-                type: String,
-                default: ''
-            },
-            vbtUniqueId: {
-                type: Number,
-                required: true
-            },
-            backgroundVariant: {
-                type: String
-            },
-            backgroundVariantResolver: {
-                type: Function,
-                default: (d) => null,
-                validator: (d) => d instanceof Function
-            },
-            disableSort: {
-                type: Boolean
-            },
-            textVariant: {
-                type: String
-            },
-            maxMatches: {
-                type: Number,
-                default: 10
-            },
-            minMatchingChars: {
-                type: Number,
-                default: 2
-            },
-            disabledValues: {
-                type: Array,
-                default: () => []
-            },
-            noResultsInfo: {
-                type: String
-            },
-            showOnFocus: {
-                type: Boolean,
-                default: false
-            },
-            showAllResults: {
-                type: Boolean,
-                default: false
-            },
-            highlightClass: {
-                type: String,
-                default: 'vbt-matched-text'
-            },
-            htmlText: {
-                type: String,
-                default: ''
-            }
-        },
-        data() 
+    function handleParentInputKeyup(e : KeyboardEvent) : void
+    {
+        switch (e.key)
         {
-            return {
-                activeListItem: -1
-            };
-        },
-
-        computed: {
-
-            highlight() 
-            {
-                return (text) => 
-                {
-                    text = sanitize(text);
-                    if(this.query.length === 0) 
-                    {
-                        return text;
-                    }
-
-                    const re = new RegExp(this.escapedQuery, 'gi');
-                    return text.replace(
-                        re,
-                        `<span class='${ this.highlightClass }'>$&</span>`
-                    );
-                };
-            },
-
-            escapedQuery() 
-            {
-                return escapeRegExp(sanitize(this.query));
-            },
-
-            actionableItems() 
-            {
-                return reject(this.matchedItems, (matchedItem) => 
-                {
-                    return this.isDisabledItem(matchedItem);
-                });
-            },
-
-            matchedItems() 
-            {
-                if(
-                    !this.showOnFocus
-                    && (isEmpty(this.query) || this.query.length < this.minMatchingChars)
-                ) 
-                {
-                    return [];
-                }
-
-                const re = new RegExp(this.showAllResults ? '' : this.escapedQuery, 'gi');
-
-                // Filter, sort, and concat
-                return this.data
-                    .filter((i) => i.text.match(re) !== null)
-                    .sort((a, b) => 
-                    {
-                        if(this.disableSort) { return 0; }
-
-                        const aIndex = a.text.indexOf(a.text.match(re)[0]);
-                        const bIndex = b.text.indexOf(b.text.match(re)[0]);
-
-                        if(aIndex < bIndex) 
-                        {
-                            return -1;
-                        }
-                        if(aIndex > bIndex) 
-                        {
-                            return 1;
-                        }
-                        return 0;
-                    })
-                    .slice(0, this.maxMatches);
-            }
-        },
-        watch: {
-            activeListItem(newValue, oldValue) 
-            {
-                if(!this.$parent.autoClose && this.$parent.isFocused === false) 
-                {
-                    this.$parent.isFocused = true;
-                }
-                if(newValue >= 0) 
-                {
-                    const scrollContainer = this.$refs.suggestionList;
-                    const listItem = scrollContainer.children[this.activeListItem];
-                    const scrollContainerlHeight = scrollContainer.clientHeight;
-                    const listItemHeight = listItem.clientHeight;
-                    const visibleItems = Math.floor(scrollContainerlHeight / (listItemHeight + 20));
-                    if(newValue >= visibleItems) 
-                    {
-                        scrollContainer.scrollTop = listItemHeight * this.activeListItem;
-                    }
-                    else 
-                    {
-                        scrollContainer.scrollTop = 0;
-                    }
-                    listItem.focus();
-                }
-            }
-        },
-
-        created() 
-        {
-            // this.$parent.$on('input', this.resetActiveListItem)
-            // this.$parent.$on('keyup', this.handleParentInputKeyup)
-        },
-
-        methods: {
-            handleParentInputKeyup(e) 
-            {
-                switch (e.key) 
-                {
-                    case 'ArrowDown': // down arrow
-                        this.selectNextListItem();
-                        break;
-                    case 'ArrowUp': // up arrow
-                        this.selectPreviousListItem();
-                        break;
-                    case 'Enter': // enter
-                        this.hitActiveListItem();
-                        break;
-                }
-            },
-
-            handleHit(item, evt) 
-            {
-                this.$emit('hit', item);
-                evt.preventDefault();
-            },
-            hitActiveListItem() 
-            {
-                if(this.activeListItem < 0) 
-                {
-                    this.selectNextListItem();
-                }
-                if(this.activeListItem >= 0) 
-                {
-                    this.$emit('hit', this.matchedItems[this.activeListItem]);
-                }
-            },
-            isDisabledItem(item) 
-            {
-                return includes(this.disabledValues, item.text);
-            },
-
-            isListItemActive(id) 
-            {
-                return this.activeListItem === id;
-            },
-            resetActiveListItem() 
-            {
-                this.activeListItem = -1;
-            },
-
-            findIndexForNextActiveItem(itemsToSearch, currentSelectedItem) 
-            {
-                if(!itemsToSearch) 
-                {
-                    itemsToSearch = this.matchedItems;
-                }
-                if(currentSelectedItem === undefined) 
-                {
-                    currentSelectedItem = this.activeListItem;
-                }
-
-                let nextActiveIndex = findIndex(
-                    itemsToSearch,
-                    (o) => 
-                    {
-                        return !this.isDisabledItem(o);
-                    },
-                    currentSelectedItem + 1
-                );
-
-                if(nextActiveIndex === BEFORE_LIST_INDEX) 
-                {
-                    nextActiveIndex = findIndex(
-                        itemsToSearch,
-                        (o) => 
-                        {
-                            return !this.isDisabledItem(o);
-                        }
-                    );
-                }
-
-                return nextActiveIndex;
-            },
-
-            selectNextListItem() 
-            {
-                if(this.actionableItems.length <= 0) 
-                {
-                    this.activeListItem = BEFORE_LIST_INDEX;
-                    return true;
-                }
-
-                this.activeListItem = this.findIndexForNextActiveItem();
-            },
-
-            selectPreviousListItem() 
-            {
-                if(this.actionableItems.length <= 0) 
-                {
-                    this.activeListItem = BEFORE_LIST_INDEX;
-                    return true;
-                }
-                else if(this.activeListItem === 0) 
-                {
-                    this.activeListItem = BEFORE_LIST_INDEX;
-                }
-
-                const reversedList = reverse(clone(this.matchedItems));
-                const currentReversedIndex
-                    = this.matchedItems.length - 1 - this.activeListItem;
-                const nextReverseIndex = this.findIndexForNextActiveItem(
-                    reversedList,
-                    currentReversedIndex
-                );
-
-                this.activeListItem = this.matchedItems.length - 1 - nextReverseIndex;
-            }
+            case 'ArrowDown': // down arrow
+                selectNextListItem();
+                break;
+            case 'ArrowUp': // up arrow
+                selectPreviousListItem();
+                break;
+            case 'Enter': // enter
+                hitActiveListItem();
+                break;
         }
-    };
+    }
+
+    function handleHit(item : any, evt : MouseEvent) : void
+    {
+        emit('hit', item);
+        evt.preventDefault();
+    }
+
+    function hitActiveListItem() : void
+    {
+        if(activeListItem.value < 0)
+        {
+            selectNextListItem();
+        }
+        if(activeListItem.value >= 0)
+        {
+            emit('hit', matchedItems.value[activeListItem.value]);
+        }
+    }
+
+    function isDisabledItem(item : any) : boolean
+    {
+        return props.disabledValues.includes(item.text);
+    }
+
+    function isListItemActive(id : number) : boolean
+    {
+        return activeListItem.value === id;
+    }
+
+    function resetActiveListItem() : void
+    {
+        activeListItem.value = -1;
+    }
+
+    function findIndexForNextActiveItem(itemsToSearch ?: any[], currentSelectedItem ?: any) : number
+    {
+        if(!itemsToSearch)
+        {
+            itemsToSearch = matchedItems.value;
+        }
+        if(currentSelectedItem === undefined)
+        {
+            currentSelectedItem = activeListItem.value;
+        }
+
+        let nextActiveIndex = itemsToSearch.findIndex((o, index) =>
+        {
+            return !isDisabledItem(o) && index > currentSelectedItem;
+        });
+
+        if(nextActiveIndex === -1)
+        {
+            nextActiveIndex = itemsToSearch.findIndex((o) =>
+            {
+                return !isDisabledItem(o);
+            });
+        }
+
+        return nextActiveIndex;
+    }
+
+    function selectNextListItem() : boolean
+    {
+        if(actionableItems.value.length <= 0)
+        {
+            activeListItem.value = -1;
+            return true;
+        }
+
+        activeListItem.value = findIndexForNextActiveItem();
+
+        return false;
+    }
+
+    function selectPreviousListItem() : boolean
+    {
+        if(actionableItems.value.length <= 0)
+        {
+            activeListItem.value = -1;
+            return true;
+        }
+        else if(activeListItem.value === 0)
+        {
+            activeListItem.value = -1;
+        }
+
+        const reversedList = [ ...matchedItems.value ].reverse();
+        const currentReversedIndex = matchedItems.value.length - 1 - activeListItem.value;
+        const nextReverseIndex = findIndexForNextActiveItem(
+            reversedList,
+            currentReversedIndex
+        );
+
+        activeListItem.value = matchedItems.value.length - 1 - nextReverseIndex;
+
+        return false;
+    }
+
+    //------------------------------------------------------------------------------------------------------------------
+    // Exports
+    //------------------------------------------------------------------------------------------------------------------
+
+    watch(() => activeListItem.value, (newValue, oldValue) =>
+    {
+        // TODO: Find a better way to get the type right here (or even better, don't use parent!)
+        // const autoClose = (vm.parent as any).autoClose;
+        // const isFocused = (vm.parent as any).isFocused;
+        //
+        // if(!autoClose.value && !isFocused.value)
+        // {
+        //     isFocused.value = true;
+        // }
+
+        if(newValue >= 0)
+        {
+            const scrollContainer = suggestionList.value;
+            const listItem = scrollContainer.children[activeListItem.value];
+            const scrollContainerHeight = scrollContainer.clientHeight;
+            const listItemHeight = listItem.clientHeight;
+            const visibleItems = Math.floor(scrollContainerHeight / (listItemHeight + 20));
+            if(newValue >= visibleItems)
+            {
+                scrollContainer.scrollTop = listItemHeight * activeListItem.value;
+            }
+            else
+            {
+                scrollContainer.scrollTop = 0;
+            }
+
+            (listItem as HTMLElement).focus();
+        }
+    });
+
+    //------------------------------------------------------------------------------------------------------------------
+    // Exports
+    //------------------------------------------------------------------------------------------------------------------
+
+    defineExpose({
+        handleParentInputKeyup,
+        handleHit,
+        hitActiveListItem,
+        isDisabledItem,
+        isListItemActive,
+        resetActiveListItem,
+        selectNextListItem,
+        selectPreviousListItem
+    });
 </script>
