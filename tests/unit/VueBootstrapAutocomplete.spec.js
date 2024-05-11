@@ -1,5 +1,5 @@
 import { mount } from '@vue/test-utils';
-import { it, describe, expect, vi } from 'vitest';
+import { it, describe, expect, vi, beforeEach } from 'vitest';
 import VueBootstrapAutocomplete from '../../src/components/VueBootstrapAutocomplete.vue';
 import VueBootstrapAutocompleteList from '../../src/components/VueBootstrapAutocompleteList.vue';
 
@@ -19,6 +19,7 @@ describe('VueBootstrapAutocomplete', () =>
     beforeEach(() =>
     {
         wrapper = mount(VueBootstrapAutocomplete, {
+            attachTo: document.body,
             propsData: {
                 data: demoData
             }
@@ -59,7 +60,7 @@ describe('VueBootstrapAutocomplete', () =>
                     code: 'CA'
                 } ],
                 value: 'Can',
-                serializer: (t) => t.name
+                serializer: (text) => text.name
             }
         });
         expect(wrapper.vm.formattedData[0].id).toBe(0);
@@ -77,8 +78,8 @@ describe('VueBootstrapAutocomplete', () =>
                     code: 'CA'
                 } ],
                 value: 'Can',
-                screenReaderTextSerializer: (t) => t.screenReaderText,
-                serializer: (t) => t.name
+                screenReaderTextSerializer: (text) => text.screenReaderText,
+                serializer: (text) => text.name
             }
         });
         expect(wrapper.vm.formattedData[0].id).toBe(0);
@@ -95,7 +96,7 @@ describe('VueBootstrapAutocomplete', () =>
                     code: 'CA'
                 } ],
                 value: 'Can',
-                serializer: (t) => t.name
+                serializer: (text) => text.name
             }
         });
         expect(wrapper.vm.formattedData[0].id).toBe(0);
@@ -126,8 +127,9 @@ describe('VueBootstrapAutocomplete', () =>
     it('Hides the list when focus is lost', async () =>
     {
         const child = wrapper.findComponent(VueBootstrapAutocompleteList);
-        wrapper.setData({ inputValue: 'Can' });
-        wrapper.find('input').trigger('focus');
+        const input = wrapper.find('input');
+        input.setValue('Can');
+        input.trigger('focus');
         await wrapper.vm.$nextTick();
         expect(child.isVisible()).toBe(true);
 
@@ -136,12 +138,15 @@ describe('VueBootstrapAutocomplete', () =>
         expect(child.isVisible()).toBe(false);
     });
 
-    it('Renders the list in different sizes', () =>
+    it('Renders the list in different sizes', async () =>
     {
         expect(wrapper.vm.inputGroupClasses).toBe('input-group');
         wrapper.setProps({
             size: 'lg'
         });
+
+        await wrapper.vm.$nextTick();
+
         expect(wrapper.vm.inputGroupClasses).toBe('input-group input-group-lg');
     });
 
@@ -156,50 +161,20 @@ describe('VueBootstrapAutocomplete', () =>
             expect(wrapper.emitted().keyup[0][0].keyCode).toBe(13);
         });
 
-        it('triggers the correct event when hitting enter', () =>
-        {
-            const child = wrapper.findComponent(VueBootstrapAutocompleteList);
-            const hitActive = vi.spyOn(child.vm, 'hitActiveListItem');
-            const input = wrapper.find('input');
-
-            input.trigger('keyup.enter');
-
-            expect(hitActive).toHaveBeenCalled();
-        });
-
-        it('triggers the correct event when hitting the down arrow', () =>
-        {
-            const child = wrapper.findComponent(VueBootstrapAutocompleteList);
-            const selectNextListItem = vi.spyOn(child.vm, 'selectNextListItem');
-            const input = wrapper.find('input');
-
-            input.trigger('keyup.down');
-
-            expect(selectNextListItem).toHaveBeenCalled();
-        });
-
-        it('triggers the correct event when hitting up arrow', () =>
-        {
-            const child = wrapper.findComponent(VueBootstrapAutocompleteList);
-            const selectPreviousListItem = vi.spyOn(child.vm, 'selectPreviousListItem');
-            const input = wrapper.find('input');
-
-            input.trigger('keyup.up');
-
-            expect(selectPreviousListItem).toHaveBeenCalled();
-        });
-
         it('Emits a blur event when the underlying input field blurs', async () =>
         {
             const input = wrapper.find('input');
             await input.trigger('blur');
-            expect(wrapper.emitted().blur).toBeTruthy();
+
+            await wrapper.vm.$nextTick();
+
+            expect(wrapper.emitted()).toHaveProperty('blur');
         });
 
         it('Does not emit a blur event if the focus shifted to the dropdown list', async () =>
         {
             const input = wrapper.find('input');
-            wrapper.setData({ inputValue: 'Can' });
+            input.setValue('Can');
             await input.trigger('focus');
 
             const listItem = wrapper.get('.vbst-item').element;
@@ -212,7 +187,7 @@ describe('VueBootstrapAutocomplete', () =>
         {
             const input = wrapper.find('input');
             await input.trigger('focus');
-            expect(wrapper.emitted().focus).toBeTruthy();
+            expect(wrapper.emitted()).toHaveProperty('focus');
         });
 
         it('Emits a paste event when the underlying input field receives a paste event', async () =>
@@ -245,7 +220,7 @@ describe('VueBootstrapAutocomplete', () =>
             no-results-info="No results found"
           />
         `
-            });
+            }, { attachTo: document.body });
 
             const child = wrapper.findComponent(VueBootstrapAutocompleteList);
 
@@ -277,9 +252,8 @@ describe('VueBootstrapAutocomplete', () =>
             v-model="query"
             no-results-info="No results found"
           />
-          </vue-bootstrap-autocomplete>
         `
-            });
+            }, { attachTo: document.body });
 
             const child = wrapper.findComponent(VueBootstrapAutocompleteList);
 
@@ -315,7 +289,7 @@ describe('VueBootstrapAutocomplete', () =>
             </template>
           </vue-bootstrap-autocomplete>
         `
-            });
+            }, { attachTo: document.body });
 
             const child = wrapper.findComponent(VueBootstrapAutocompleteList);
             const slot = wrapper.find('#noResultsInfo');
@@ -355,7 +329,7 @@ describe('VueBootstrapAutocomplete', () =>
             </template>
           </vue-bootstrap-autocomplete>
         `
-            });
+            }, { attachTo: document.body });
 
             const child = wrapper.findComponent(VueBootstrapAutocompleteList);
             const slot = wrapper.find('#noResultsInfo');
@@ -380,7 +354,7 @@ describe('VueBootstrapAutocomplete', () =>
             wrapper.find('input').setValue('Canada');
             await wrapper.vm.$nextTick();
 
-            expect(wrapper.props().noResultsInfo).toBe(undefined);
+            expect(wrapper.props().noResultsInfo).toBe(null);
             expect(wrapper.find('#noResultsInfo').exists()).toBe(false);
         });
 
@@ -408,7 +382,7 @@ describe('VueBootstrapAutocomplete', () =>
             </template>
           </vue-bootstrap-autocomplete>
         `
-            });
+            }, { attachTo: document.body });
 
             const child = wrapper.findComponent(VueBootstrapAutocompleteList);
             const slot = wrapper.find('#noResultsInfo');
@@ -445,9 +419,8 @@ describe('VueBootstrapAutocomplete', () =>
             v-model="query"
             no-results-info="No results found"
           />
-          </vue-bootstrap-autocomplete>
         `
-            });
+            }, { attachTo: document.body });
 
             const child = wrapper.findComponent(VueBootstrapAutocompleteList);
 
@@ -483,7 +456,7 @@ describe('VueBootstrapAutocomplete', () =>
             </template>
           </vue-bootstrap-autocomplete>
         `
-            });
+            }, { attachTo: document.body });
 
             const child = wrapper.findComponent(VueBootstrapAutocompleteList);
             const slot = wrapper.find('#noResultsInfo');

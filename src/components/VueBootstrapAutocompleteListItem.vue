@@ -19,6 +19,7 @@
         </div>
         <div aria-hidden="true">
             <slot name="suggestion" v-bind="{ data: data, htmlText: htmlText }">
+                <!-- eslint-disable-next-line vue/no-v-html -->
                 <span v-html="htmlText"></span>
             </slot>
         </div>
@@ -60,6 +61,10 @@
     const props = withDefaults(defineProps<Props>(), {
         data: {},
         disabled: false,
+        screenReaderText: '',
+        htmlText: '',
+        backgroundVariant: null,
+        textVariant: null,
         backgroundVariantResolver: () => null
     });
 

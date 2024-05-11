@@ -1,5 +1,5 @@
 import { mount } from '@vue/test-utils';
-import { it, describe, expect } from 'vitest';
+import { it, describe, expect, beforeEach } from 'vitest';
 
 import VueBootstrapAutocompleteList from '../../src/components/VueBootstrapAutocompleteList.vue';
 import VueBootstrapAutocompleteListItem from '../../src/components/VueBootstrapAutocompleteListItem.vue';
@@ -41,7 +41,9 @@ describe('VueBootstrapTypeaheadList', () =>
         wrapper = mount(VueBootstrapAutocompleteList, {
             propsData: {
                 data: demoData,
-                vbtUniqueId: 123456789
+                vbtUniqueId: 123456789,
+                isFocused: true,
+                autoClose: true
             }
         });
     });
@@ -343,6 +345,7 @@ describe('VueBootstrapTypeaheadList', () =>
                     query: 'Cana'
                 });
             });
+
             it('returns the selected item when one is selected', async () =>
             {
                 wrapper.vm.selectNextListItem();

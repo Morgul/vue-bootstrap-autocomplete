@@ -15,8 +15,13 @@
             :background-variant-resolver="backgroundVariantResolver"
             :text-variant="textVariant"
             v-bind="$attrs"
-            @click.native="handleHit(item, $event)"
+            @list-item-blur="resetActiveListItem"
+            @hit-active-list-item="hitActiveListItem"
+            @select-next-list-item="selectNextListItem"
+            @select-previous-list-item="selectPreviousListItem"
+            @click="handleHit(item, $event)"
         >
+            <!-- eslint-disable-next-line vue/no-template-shadow -->
             <template v-if="$slots.suggestion" #suggestion="{ data, htmlText }">
                 <slot name="suggestion" v-bind="{ data, htmlText }"></slot>
             </template>
@@ -40,7 +45,7 @@
 </template>
 
 <script setup lang="ts">
-    import { ref, computed, defineProps, defineEmits, defineExpose, getCurrentInstance, watch } from 'vue';
+    import { ref, computed, watch } from 'vue';
     import VueBootstrapAutocompleteListItem from './VueBootstrapAutocompleteListItem.vue';
 
     //------------------------------------------------------------------------------------------------------------------
@@ -63,6 +68,8 @@
         showAllResults ?: boolean;
         highlightClass ?: string;
         htmlText ?: string;
+        autoClose : boolean;
+        isFocused : boolean;
     }
 
     const props = withDefaults(defineProps<Props>(), {
@@ -73,24 +80,50 @@
         textVariant: '',
         maxMatches: 10,
         minMatchingChars: 1,
+        disabledValues: () => [],
         noResultsInfo: 'No results found',
         showOnFocus: false,
         showAllResults: false,
         highlightClass: 'vbt-matched-text',
         htmlText: '',
-
-        // @ts-expect-error - TS doesn't like this, but it's correct
-        disabledValues: []
+        autoClose: false,
+        isFocused: false
     });
 
-    const emit = defineEmits([ 'hit' ]);
+    const emit = defineEmits<{
+        hit : [item : any],
+        'update:isFocused' : [isFocused: boolean]
+    }>();
+
+    //------------------------------------------------------------------------------------------------------------------
+    // Helpers
+    //------------------------------------------------------------------------------------------------------------------
+
+    function sanitize(text : string) : string
+    {
+        return text.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+
+    function escapeRegExp(str : string) : string
+    {
+        return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    }
+
+    function isDisabledItem(item : any) : boolean
+    {
+        return props.disabledValues.includes(item.text);
+    }
 
     //------------------------------------------------------------------------------------------------------------------
     // Data
     //------------------------------------------------------------------------------------------------------------------
 
     const activeListItem = ref(-1);
-    const vm = getCurrentInstance();
+
+    const escapedQuery = computed(() =>
+    {
+        return escapeRegExp(sanitize(props.query));
+    });
 
     const highlight = computed(() =>
     {
@@ -110,19 +143,6 @@
         };
     });
 
-    const escapedQuery = computed(() =>
-    {
-        return escapeRegExp(sanitize(props.query));
-    });
-
-    const actionableItems = computed(() =>
-    {
-        return matchedItems.value.filter((matchedItem) =>
-        {
-            return !isDisabledItem(matchedItem);
-        });
-    });
-
     const matchedItems = computed(() =>
     {
         if(!props.showOnFocus && (props.query.trim() === '' || props.query.length < props.minMatchingChars))
@@ -134,12 +154,12 @@
 
         return props.data
             .filter((i) => i.text.match(re) !== null)
-            .sort((a, b) =>
+            .sort((aItem, bItem) =>
             {
                 if(props.disableSort) { return 0; }
 
-                const aIndex = a.text.indexOf(a.text.match(re)[0]);
-                const bIndex = b.text.indexOf(b.text.match(re)[0]);
+                const aIndex = aItem.text.indexOf(aItem.text.match(re)[0]);
+                const bIndex = bItem.text.indexOf(bItem.text.match(re)[0]);
 
                 if(aIndex < bIndex)
                 {
@@ -154,64 +174,29 @@
             .slice(0, props.maxMatches);
     });
 
+    const actionableItems = computed(() =>
+    {
+        return matchedItems.value.filter((matchedItem) =>
+        {
+            return !isDisabledItem(matchedItem);
+        });
+    });
+
     const suggestionList = ref<HTMLElement | null>(null);
 
     //------------------------------------------------------------------------------------------------------------------
     // Methods
     //------------------------------------------------------------------------------------------------------------------
 
-    function sanitize(text : string) : string
+    function isListItemActive(id : number) : boolean
     {
-        return text.replace(/</g, '&lt;').replace(/>/g, '&gt;');
-    }
-
-    function escapeRegExp(str : string) : string
-    {
-        return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    }
-
-    function handleParentInputKeyup(e : KeyboardEvent) : void
-    {
-        switch (e.key)
-        {
-            case 'ArrowDown': // down arrow
-                selectNextListItem();
-                break;
-            case 'ArrowUp': // up arrow
-                selectPreviousListItem();
-                break;
-            case 'Enter': // enter
-                hitActiveListItem();
-                break;
-        }
+        return activeListItem.value === id;
     }
 
     function handleHit(item : any, evt : MouseEvent) : void
     {
         emit('hit', item);
         evt.preventDefault();
-    }
-
-    function hitActiveListItem() : void
-    {
-        if(activeListItem.value < 0)
-        {
-            selectNextListItem();
-        }
-        if(activeListItem.value >= 0)
-        {
-            emit('hit', matchedItems.value[activeListItem.value]);
-        }
-    }
-
-    function isDisabledItem(item : any) : boolean
-    {
-        return props.disabledValues.includes(item.text);
-    }
-
-    function isListItemActive(id : number) : boolean
-    {
-        return activeListItem.value === id;
     }
 
     function resetActiveListItem() : void
@@ -230,16 +215,16 @@
             currentSelectedItem = activeListItem.value;
         }
 
-        let nextActiveIndex = itemsToSearch.findIndex((o, index) =>
+        let nextActiveIndex = itemsToSearch.findIndex((obj, index) =>
         {
-            return !isDisabledItem(o) && index > currentSelectedItem;
+            return !isDisabledItem(obj) && index > currentSelectedItem;
         });
 
         if(nextActiveIndex === -1)
         {
-            nextActiveIndex = itemsToSearch.findIndex((o) =>
+            nextActiveIndex = itemsToSearch.findIndex((item) =>
             {
-                return !isDisabledItem(o);
+                return !isDisabledItem(item);
             });
         }
 
@@ -283,20 +268,46 @@
         return false;
     }
 
+    function hitActiveListItem() : void
+    {
+        if(activeListItem.value < 0)
+        {
+            selectNextListItem();
+        }
+
+        if(activeListItem.value >= 0)
+        {
+            emit('hit', matchedItems.value[activeListItem.value]);
+        }
+    }
+
+    function handleParentInputKeyup(evt : KeyboardEvent) : void
+    {
+        const key = evt.key?.toLowerCase();
+        switch (key)
+        {
+            case 'arrowdown': // down arrow
+                selectNextListItem();
+                break;
+            case 'arrowup': // up arrow
+                selectPreviousListItem();
+                break;
+            case 'enter': // enter
+                hitActiveListItem();
+                break;
+        }
+    }
+
     //------------------------------------------------------------------------------------------------------------------
-    // Exports
+    // Watch
     //------------------------------------------------------------------------------------------------------------------
 
     watch(() => activeListItem.value, (newValue, oldValue) =>
     {
-        // TODO: Find a better way to get the type right here (or even better, don't use parent!)
-        // const autoClose = (vm.parent as any).autoClose;
-        // const isFocused = (vm.parent as any).isFocused;
-        //
-        // if(!autoClose.value && !isFocused.value)
-        // {
-        //     isFocused.value = true;
-        // }
+        if(!props.autoClose && !props.isFocused)
+        {
+            emit('update:isFocused', true);
+        }
 
         if(newValue >= 0)
         {

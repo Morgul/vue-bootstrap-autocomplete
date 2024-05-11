@@ -1,26 +1,16 @@
+import { beforeEach, describe, expect, it } from 'vitest';
+
 import { shallowMount } from '@vue/test-utils';
 import VueBootstrapAutocompleteListItem from '../../src/components/VueBootstrapAutocompleteListItem.vue';
 
 describe('VueBootstrapAutocompleteListItem.vue', () =>
 {
     let wrapper;
-    let mockParent;
 
     beforeEach(() =>
     {
-    // Mock parent methods
-        mockParent = {
-            methods: {
-                hitActiveListItem: vi.fn(),
-                selectNextListItem: vi.fn(),
-                selectPreviousListItem: vi.fn()
-            }
-        };
-
         // Create a shallow wrapper of the component
-        wrapper = shallowMount(VueBootstrapAutocompleteListItem, {
-            parentComponent: mockParent
-        });
+        wrapper = shallowMount(VueBootstrapAutocompleteListItem);
     });
 
     it('Mounts and renders a <li> tag', () =>
@@ -70,27 +60,21 @@ describe('VueBootstrapAutocompleteListItem.vue', () =>
         expect(wrapper.classes()).toEqual(expect.arrayContaining([ ...baseClasses ]));
     });
 
-    it('emits "listItemBlur" when the list items lose focus', async () =>
-    {
-        wrapper.find('.vbst-item').trigger('blur');
-        expect(wrapper.emitted('listItemBlur')).toBeTruthy();
-    });
-
     it('Renders backgroundVariantResolver classes properly', async () =>
     {
         const baseClasses = [ ...wrapper.vm.baseTextClasses ];
         const testItems = [
             {
                 data: { prop: 'light' },
-                resolver: (d) => d.prop
+                resolver: (item) => item.prop
             },
             {
                 data: { prop: 'dark' },
-                resolver: (d) => d.prop
+                resolver: (item) => item.prop
             },
             {
                 data: { prop: 'warning' },
-                resolver: (d) => d.prop
+                resolver: (item) => item.prop
             }
         ];
         // iterate through the test items which specify a classname to add
@@ -101,7 +85,10 @@ describe('VueBootstrapAutocompleteListItem.vue', () =>
                 backgroundVariantResolver: testItems[i].resolver,
                 data: testItems[i].data
             });
+
+            // eslint-disable-next-line no-await-in-loop
             await wrapper.vm.$nextTick();
+
             // this should be adding a single class to the baseClasses, should not be appending
             expect(wrapper.classes()).toHaveLength(baseClasses.length + 1);
             expect(wrapper.classes()).toEqual(expect.arrayContaining([ `list-group-item-${ [ testItems[i].data.prop ] }` ]));
@@ -122,24 +109,33 @@ describe('VueBootstrapAutocompleteListItem.vue', () =>
         expect(wrapper.classes()).toEqual(expect.arrayContaining([ `list-group-item-dark` ]));
     });
 
-    // it("calls parent hitActiveListItem method when keyup.enter event is triggered", async () => {
-    //   await wrapper.trigger("keyup.enter");
-    //
-    //   // Expect the parent method to have been called
-    //   expect(mockParent.methods.hitActiveListItem).toHaveBeenCalled();
-    // });
+    it("emits 'listItemBlur' when the list items lose focus", async () =>
+    {
+        wrapper.find('.vbst-item').trigger('blur');
+        expect(wrapper.emitted('listItemBlur')).toBeTruthy();
+    });
 
-    // it("calls parent selectNextListItem method when keyup.down event is triggered", async () => {
-    //   await wrapper.trigger("keyup.down");
-    //
-    //   // Expect the parent method to have been called
-    //   expect(mockParent.methods.selectNextListItem).toHaveBeenCalled();
-    // });
-    //
-    // it("calls parent selectPreviousListItem method when keyup.up event is triggered", async () => {
-    //   await wrapper.trigger("keyup.up");
-    //
-    //   // Expect the parent method to have been called
-    //   expect(mockParent.methods.selectPreviousListItem).toHaveBeenCalled();
-    // });
+    it("emits 'hitActiveListItem' event when keyup.enter event is triggered", async () =>
+    {
+        await wrapper.trigger('keyup.enter');
+
+        // Expect the parent method to have been called
+        expect(wrapper.emitted()).toHaveProperty('hitActiveListItem');
+    });
+
+    it("emits 'selectNextListItem' event when keyup.down event is triggered", async () =>
+    {
+        await wrapper.trigger('keyup.down');
+
+        // Expect the parent method to have been called
+        expect(wrapper.emitted()).toHaveProperty('selectNextListItem');
+    });
+
+    it("emits 'selectPreviousListItem' event when keyup.up event is triggered", async () =>
+    {
+        await wrapper.trigger('keyup.up');
+
+        // Expect the parent method to have been called
+        expect(wrapper.emitted()).toHaveProperty('selectPreviousListItem');
+    });
 });
