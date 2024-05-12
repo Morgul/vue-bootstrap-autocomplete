@@ -35,6 +35,10 @@ would be interested in those changes. I also wanted to make sure that I could pu
 on npm, so that I didn't have to wait for an update version to move forward for my one use case. If the original project
 is still active, I'm happy to contribute back to it, but I'm not sure if it is.
 
+If there is a desire, I've pushed a git tag `before-rename` that should be all the changes prior to the rename of 
+the project, which I did after verifying and testing that the project worked with Vue 3. If the original author 
+wants those changes without worrying about the other junk, that's the tag to pull from.
+
 In terms of the mechanics of what needed to be updated, it wasn't _that_ hard to get it working with Vue 3, but it was
 a bit of work. I'm happy to work with the original author if they're interested in updating the project, but don't 
 want to just merge my work. (I made style change to files and such as well, which I'm not sure the original author 
