@@ -89,8 +89,12 @@
 
 <script setup lang="ts">
     import { ref, computed, watch, onBeforeUnmount, onMounted } from 'vue';
-    import VueBootstrapAutocompleteList from './VueBootstrapAutocompleteList.vue';
+    import { createPopper, Options as PopperOptions } from '@popperjs/core';
     import ResizeObserver from 'resize-observer-polyfill';
+
+    // Components
+    import VueBootstrapAutocompleteList from './VueBootstrapAutocompleteList.vue';
+    import { deepMerge } from '../utils';
 
     //------------------------------------------------------------------------------------------------------------------
     // Component Definition
@@ -123,6 +127,7 @@
         append ?: string;
         highlightClass ?: string;
         state ?: boolean;
+        popperOptions ?: PopperOptions;
     }
 
     const props = withDefaults(defineProps<Props>(), {
@@ -150,7 +155,8 @@
         prepend: undefined,
         append: undefined,
         highlightClass: 'vbt-matched-text',
-        state: undefined
+        state: undefined,
+        popperOptions: undefined
     });
 
     const emit = defineEmits<{
@@ -189,6 +195,27 @@
     //------------------------------------------------------------------------------------------------------------------
     // Data
     //------------------------------------------------------------------------------------------------------------------
+
+    let popperInstance = null;
+
+    const defaultPopperOptions = {
+        strategy: 'absolute',
+        placement: 'bottom-start',
+        modifiers: [
+            {
+                name: 'preventOverflow',
+                options: {
+                    boundary: 'clippingParents'
+                }
+            },
+            {
+                name: 'offset',
+                options: {
+                    offset: [0, 2]
+                }
+            }
+        ]
+    };
 
     const id = computed(() => Math.floor(Math.random() * 100000));
 
@@ -347,6 +374,7 @@
         resizeObserver = new ResizeObserver(() =>
         {
             resizeList(inputRef.value);
+            popperInstance.update();
         });
 
         if(inputRef.value)
@@ -358,11 +386,21 @@
         {
             resizeObserver.observe(listRef.value.$el);
         }
+
+        if (inputRef.value && listRef.value)
+        {
+            const popperOpts = deepMerge(deepMerge({}, defaultPopperOptions), props.popperOptions);
+            popperInstance = createPopper(inputRef.value, listRef.value.$el, popperOpts);
+        }
     });
 
     onBeforeUnmount(() =>
     {
         resizeObserver?.disconnect();
+        if (popperInstance) {
+            popperInstance.destroy();
+            popperInstance = null;
+        }
     });
 
     //------------------------------------------------------------------------------------------------------------------
