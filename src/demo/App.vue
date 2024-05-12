@@ -43,10 +43,45 @@
         <VueBootstrapAutocomplete
             v-model="state.query"
             class="mb-4"
-            placeholder="search"
+            placeholder="Search"
             :data="['Canada', 'United States', 'Mexico', 'Netherlands']"
             show-on-focus
         ></VueBootstrapAutocomplete>
+
+        <h4 class="mt-5">
+            Prepend and Append Slots:
+        </h4>
+        <VueBootstrapAutocomplete
+            v-model="state.query"
+            class="mb-4"
+            placeholder="Search"
+            :data="['Canada', 'United States', 'Mexico', 'Netherlands']"
+            show-on-focus
+        >
+            <template #prepend>
+                <span class="input-group-text">Country</span>
+            </template>
+
+            <template #append>
+                <button class="btn btn-primary">Search</button>
+            </template>
+        </VueBootstrapAutocomplete>
+        <h4 class="mt-5">
+            Suggestion Slot:
+        </h4>
+        <VueBootstrapAutocomplete
+            v-model="state.query"
+            class="mb-4"
+            placeholder="Search"
+            :data="['Canada', 'United States', 'Mexico', 'Netherlands']"
+            show-on-focus
+        >
+            <template #suggestion="{ data, htmlText }">
+                <h3 class="mb-0">
+                    <span class="badge text-bg-primary" v-html="htmlText"></span>
+                </h3>
+            </template>
+        </VueBootstrapAutocomplete>
     </div>
 </template>
 
@@ -54,6 +89,8 @@
     import '~bootstrap/scss/bootstrap.scss';
 
     import { reactive } from 'vue';
+
+    // Components
     import VueBootstrapAutocomplete from '../components/VueBootstrapAutocomplete.vue';
 
     const state = reactive({ query: '' });

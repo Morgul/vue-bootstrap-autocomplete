@@ -22,7 +22,7 @@
             @click="handleHit(item, $event)"
         >
             <!-- eslint-disable-next-line vue/no-template-shadow -->
-            <template v-if="$slots.suggestion" #suggestion="{ data, htmlText }">
+            <template #suggestion="{ data, htmlText }">
                 <slot name="suggestion" v-bind="{ data, htmlText }"></slot>
             </template>
         </VueBootstrapAutocompleteListItem>
@@ -34,12 +34,9 @@
             disabled="disabled"
             aria-selected="false"
         >
-            <template v-if="$slots.noResultsInfo">
-                <slot name="noResultsInfo" v-bind="{ data, htmlText }"></slot>
-            </template>
-            <template v-else>
+            <slot name="noResultsInfo" v-bind="{ data, htmlText }">
                 {{ noResultsInfo }}
-            </template>
+            </slot>
         </li>
     </ul>
 </template>
@@ -57,7 +54,7 @@
         query ?: string;
         vbtUniqueId : number;
         backgroundVariant ?: string;
-        backgroundVariantResolver ?: (d : any) => string;
+        backgroundVariantResolver ?: (d : any) => string | null;
         disableSort ?: boolean;
         textVariant ?: string;
         maxMatches ?: number;
@@ -312,20 +309,23 @@
         if(newValue >= 0)
         {
             const scrollContainer = suggestionList.value;
-            const listItem = scrollContainer.children[activeListItem.value];
-            const scrollContainerHeight = scrollContainer.clientHeight;
-            const listItemHeight = listItem.clientHeight;
-            const visibleItems = Math.floor(scrollContainerHeight / (listItemHeight + 20));
-            if(newValue >= visibleItems)
+            if(scrollContainer)
             {
-                scrollContainer.scrollTop = listItemHeight * activeListItem.value;
-            }
-            else
-            {
-                scrollContainer.scrollTop = 0;
-            }
+                const listItem = scrollContainer.children[activeListItem.value];
+                const scrollContainerHeight = scrollContainer.clientHeight;
+                const listItemHeight = listItem.clientHeight;
+                const visibleItems = Math.floor(scrollContainerHeight / (listItemHeight + 20));
+                if(newValue >= visibleItems)
+                {
+                    scrollContainer.scrollTop = listItemHeight * activeListItem.value;
+                }
+                else
+                {
+                    scrollContainer.scrollTop = 0;
+                }
 
-            (listItem as HTMLElement).focus();
+                (listItem as HTMLElement).focus();
+            }
         }
     });
 

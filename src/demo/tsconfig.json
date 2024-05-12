@@ -17,8 +17,8 @@
         "../vue-shim.d.ts"
     ],
     "include": [
-        "../library/**/*.ts",
-        "../library/**/*.vue",
+        "../**/*.ts",
+        "../**/*.vue",
         "**/*.ts",
         "**/*.vue",
     ]

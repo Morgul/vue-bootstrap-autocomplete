@@ -354,7 +354,7 @@ describe('VueBootstrapAutocomplete', () =>
             wrapper.find('input').setValue('Canada');
             await wrapper.vm.$nextTick();
 
-            expect(wrapper.props().noResultsInfo).toBe(null);
+            expect(wrapper.props().noResultsInfo).toBe(undefined);
             expect(wrapper.find('#noResultsInfo').exists()).toBe(false);
         });
 

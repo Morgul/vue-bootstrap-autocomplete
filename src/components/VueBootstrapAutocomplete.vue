@@ -7,15 +7,9 @@
         :aria-expanded="isFocused && data.length > 0 ? 'true' : 'false'"
     >
         <div :class="inputGroupClasses">
-            <div
-                v-if="$slots.prepend || prepend"
-                ref="prependDiv"
-                class="input-group-prepend"
-            >
-                <slot name="prepend">
-                    <span class="input-group-text">{{ prepend }}</span>
-                </slot>
-            </div>
+            <slot name="prepend">
+                <span v-if="prepend" class="input-group-text">{{ prepend }}</span>
+            </slot>
             <input
                 :id="`typeahead-input-${id}`"
                 ref="inputRef"
@@ -29,7 +23,7 @@
                 :aria-activedescendant="`selected-option-${id}`"
                 :name="inputName"
                 :placeholder="placeholder"
-                :aria-label="!ariaLabelledBy ? placeholder : null"
+                :aria-label="!ariaLabelledBy ? placeholder : undefined"
                 :value="inputValue"
                 :disabled="disabled"
                 @focus="handleFocus"
@@ -39,11 +33,9 @@
                 @keyup="handleKeyUp($event)"
                 @paste="$emit('paste', $event)"
             ></input>
-            <div v-if="$slots.append || append" class="input-group-append">
-                <slot name="append">
-                    <span class="input-group-text">{{ append }}</span>
-                </slot>
-            </div>
+            <slot name="append">
+                <span v-if="append" class="input-group-text">{{ append }}</span>
+            </slot>
         </div>
         <VueBootstrapAutocompleteList
             v-show="isFocused && (data.length > 0 || !!$slots.noResultsInfo || !!noResultsInfo)"
@@ -70,15 +62,13 @@
             @hit="handleHit"
             @list-item-blur="handleChildBlur"
         >
-            <!-- pass down all scoped slots -->
-            <!-- eslint-disable-next-line vue/no-template-shadow -->
-            <template v-for="(slot, slotName) in $slots" #[slotName]="{ data, htmlText }">
-                <slot :name="slotName" v-bind="{ data, htmlText }"></slot>
-            </template>
-            <!-- below is the right solution, however if the user does not provide a scoped slot, vue will still set $slots.suggestion to a blank scope
-            <template v-if="$slots.suggestion" slot="suggestion" slot-scope="{ data, htmlText }">
+            <template #suggestion="{ data, htmlText }">
                 <slot name="suggestion" v-bind="{ data, htmlText }" />
-            </template>-->
+            </template>
+
+            <template #noResultsInfo="{ data, htmlText }">
+                <slot name="noResultsInfo" v-bind="{ data, htmlText }" />
+            </template>
         </VueBootstrapAutocompleteList>
     </div>
 </template>
@@ -115,7 +105,7 @@
         serializer ?: (d : any) => string;
         screenReaderTextSerializer ?: (d : any) => string;
         backgroundVariant ?: string;
-        backgroundVariantResolver ?: (d : any) => string;
+        backgroundVariantResolver ?: (d : any) => string | null;
         disabledValues ?: any[];
         textVariant ?: string;
         inputClass ?: string;
@@ -136,31 +126,31 @@
     }
 
     const props = withDefaults(defineProps<Props>(), {
-        modelValue: null,
+        modelValue: undefined,
         ariaLabelledBy: '',
-        size: null,
+        size: undefined,
         disabled: false,
         serializer: (text) => `${ text }`,
-        screenReaderTextSerializer: null,
-        backgroundVariant: null,
+        screenReaderTextSerializer: undefined,
+        backgroundVariant: undefined,
         backgroundVariantResolver: () => null,
         disabledValues: () => [],
-        textVariant: null,
-        inputClass: null,
-        inputName: null,
+        textVariant: undefined,
+        inputClass: undefined,
+        inputName: undefined,
         maxMatches: 10,
         minMatchingChars: 1,
         disableSort: false,
-        noResultsInfo: null,
+        noResultsInfo: undefined,
         showOnFocus: false,
         showAllResults: false,
         autoClose: true,
         ieCloseFix: false,
         placeholder: 'Search',
-        prepend: null,
-        append: null,
+        prepend: undefined,
+        append: undefined,
         highlightClass: 'vbt-matched-text',
-        state: null
+        state: undefined
     });
 
     const emit = defineEmits<{
@@ -227,7 +217,7 @@
     });
 
     const isFocused = ref(false);
-    const inputValue = ref(props.modelValue || '');
+    const inputValue = ref<string | undefined>(props.modelValue);
 
     const inputRef = ref<HTMLInputElement | null>(null);
     const listRef = ref<InstanceType<typeof VueBootstrapAutocompleteList> | null>(null);
@@ -243,7 +233,7 @@
     function resizeList(el)
     {
         const rect = el.getBoundingClientRect();
-        const listStyle = listRef.value.$el.style;
+        const listStyle = listRef.value?.$el.style;
 
         // Set the width of the list on resize
         listStyle.width = `${ rect.width }px`;
@@ -259,7 +249,7 @@
 
     function handleKeyUp(evt)
     {
-        listRef.value.handleParentInputKeyup(evt);
+        listRef.value?.handleParentInputKeyup(evt);
         emit('keyup', evt);
     }
 
@@ -275,14 +265,14 @@
 
         if(props.autoClose)
         {
-            inputRef.value.blur();
+            inputRef.value?.blur();
             isFocused.value = false;
         }
     }
 
     function handleChildBlur()
     {
-        inputRef.value.focus();
+        inputRef.value?.focus();
         isFocused.value = false;
     }
 
@@ -293,7 +283,7 @@
             return;
         }
 
-        if(listRef.value.$el.matches(':hover'))
+        if(listRef.value?.$el.matches(':hover'))
         {
             return;
         }
@@ -326,7 +316,7 @@
         isFocused.value = true;
         inputValue.value = newValue;
 
-        listRef.value.resetActiveListItem();
+        listRef.value?.resetActiveListItem();
 
         // If v-model is being used, emit an input event
         if(typeof props.modelValue !== 'undefined')
@@ -339,7 +329,7 @@
     {
         if(input === '')
         {
-            inputRef.value.blur();
+            inputRef.value?.blur?.();
             isFocused.value = false;
         }
         else
@@ -358,8 +348,16 @@
         {
             resizeList(inputRef.value);
         });
-        resizeObserver.observe(inputRef.value);
-        resizeObserver.observe(listRef.value.$el);
+
+        if(inputRef.value)
+        {
+            resizeObserver.observe(inputRef.value);
+        }
+
+        if(listRef.value?.$el)
+        {
+            resizeObserver.observe(listRef.value.$el);
+        }
     });
 
     onBeforeUnmount(() =>
