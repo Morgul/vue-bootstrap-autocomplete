@@ -1,4 +1,46 @@
-![Nodejs workflow status](https://github.com/drikusroor/vue-bootstrap-autocomplete/actions/workflows/nodejs.yml/badge.svg) [![npm version](https://badge.fury.io/js/@vue-bootstrap-components%2Fvue-bootstrap-autocomplete.svg)](https://badge.fury.io/js/@vue-bootstrap-components%2Fvue-bootstrap-autocomplete)
+![Nodejs workflow status](https://github.com/morgul/vue-bootstrap-autocomplete/actions/workflows/nodejs.yml/badge.svg) [![npm version](https://badge.fury.io/js/@vue-bootstrap-components%2Fvue-bootstrap-autocomplete.svg)](https://badge.fury.io/js/@vue-bootstrap-components%2Fvue-bootstrap-autocomplete)
+
+# ⚠ Beta Quality Fork ⚠
+
+This is a fork of [drikusroor's](https://drikusroor.github.io/vue-bootstrap-autocomplete) fork of [mattzollinhofer's]
+(https://github.com/mattzollinhofer/vue-typeahead-bootstrap) original project. The reason I forked it is that I 
+needed a Vue 3 compatible version of the component that was compatible with Bootstrap 5. I have made some changes to the
+components to move them to the Vue 3 composition API and clean up some of the slot mechanics (which are no longer 
+needed in Vue 3, and I suspect were not needed in Vue 2 either). I did not have to make any changes to the CSS for 
+Bootstrap 5 compatibility, though in the future I may if an issue is found.
+
+Also worth noting, I've migrated to TypeScript as well, since I prefer it for Vue 3 projects. The Unit Tests (which 
+run and pass) are still in JavaScript, but I may migrate them to TypeScript in the future (PRs welcome).
+
+## Status
+
+Currently, I've changed a lot of the original code, but haven't bothered migrating VuePress to Vue 3 yet. I'm not 
+sure if I will do that (the Vue 3 version is in RC right now) or migrate to [VitePress](https://vitepress.dev/). I'm 
+also not sure how much work I want to do maintaining this project. I'm happy to accept PRs, but I need it for 
+exactly one side project, and I may even be factoring it out of that project eventually.
+
+If there's interest in the project, I'm happy to maintain it; the first step would be fixing up the documentation 
+(and this readme). If you're interested in helping with that, please let me know (via a PR).
+
+## Contributing
+
+The only real difference between this project and the original in terms of getting started locally is that you just 
+need to run `npm run dev` to start the demo site. The rest of the instructions in the original readme should be the 
+same.
+
+## Why not a PR to the original project?
+
+I did consider that, but I wanted to make a lot of changes to the project, and I wasn't sure if the original author
+would be interested in those changes. I also wanted to make sure that I could publish the package under my own name
+on npm, so that I didn't have to wait for an update version to move forward for my one use case. If the original project
+is still active, I'm happy to contribute back to it, but I'm not sure if it is.
+
+In terms of the mechanics of what needed to be updated, it wasn't _that_ hard to get it working with Vue 3, but it was
+a bit of work. I'm happy to work with the original author if they're interested in updating the project, but don't 
+want to just merge my work. (I made style change to files and such as well, which I'm not sure the original author 
+would want.)
+
+---
 
 # Contributors and PRs welcome
 Hello everyone. `vue-bootstrap-autocomplete` is a continuation of where [vue-typeahead-bootstrap](https://github.com/mattzollinhofer/vue-typeahead-bootstrap) left off. To move this project forward again, every contribution is welcome. Fixing bugs, adding features, improving documentation, every bit helps so don't be afraid to open a pull request. I won't bite, I promise.
