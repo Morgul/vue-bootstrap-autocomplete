@@ -1,3 +1,9 @@
+## 3.0.0.beta.0 - 2024-05-11
+- Breaking change: Migrated to Vue 3. This is a beta release, so please test thoroughly before using in production.
+- Breaking change: Migrated to Bootstrap 5. (Note: Should still work with Bootstrap 4, but not tested.)
+- Breaking change: Large refactor of the codebase to use Vue 3 features.
+- Breaking change: Moved to Popper.js. (This should be a seamless transition, but please test.)
+
 ## 2.15.0 - 29 Sep 2022
 - Add `noResultInfo` for when there are no results matching the user's search
 
